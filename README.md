@@ -18,5 +18,5 @@ Accessing DB logs: `logs_db`
 Go to `http://localhost:5050/` and log in with the following credentials:
 ```bash
 admin@example.com # Email
-admin Password
+admin # Password
 ```
