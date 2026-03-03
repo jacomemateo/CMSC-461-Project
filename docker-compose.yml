@@ -7,9 +7,9 @@ services:
       POSTGRES_PASSWORD: secret
       POSTGRES_DB: parking
     ports:
-      - "6767:6767"
+      - "6767:5432"
     volumes:
-      - db-data:/var/lib/postgresql
+      - db_data:/var/lib/postgresql/data
       - ./db/migrations:/docker-entrypoint-initdb.d
     
   pgadmin:
@@ -24,8 +24,8 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:
-      - postgres
+      - db
 
 volumes:
-  postgres_data:
+  db_data:
   pgadmin_data:
