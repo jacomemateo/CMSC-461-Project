@@ -14,5 +14,5 @@ nuke_db:
 	docker compose down -v
 
 logs_db:
-	docker logs vending-db
+	docker logs parking-db
 
