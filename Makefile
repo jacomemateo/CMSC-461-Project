@@ -1,4 +1,4 @@
-.PHONY: create_db connect_db nuke_db shutdown_db 
+.PHONY: create_db connect_db nuke_db shutdown_db smoke_test
 
 
 create_db:
@@ -16,3 +16,5 @@ nuke_db:
 logs_db:
 	docker logs parking-db
 
+smoke_test:
+	docker exec -i parking-db psql -U postgres -d parking < db/test/smoke_test.sql

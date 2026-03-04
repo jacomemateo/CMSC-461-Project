@@ -20,3 +20,7 @@ Go to `http://localhost:5050/` and log in with the following credentials:
 admin@example.com # Email
 admin # Password
 ```
+
+## Smoke test
+
+After the container is running just run `make smoke_test`
