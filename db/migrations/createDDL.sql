@@ -1,7 +1,12 @@
+CREATE TYPE sensor_event_type AS ENUM ('ARRIVAL', 'DEPARTURE');
+
+CREATE TYPE parking_type_enum AS ENUM ('STUDENT', 'GUEST', 'STAFF', 'UNKNOWN');
+
 CREATE TABLE lot_info (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
-    name TEXT NOT NULL,
-    lot_type parking_type_enum NOT NULL
+    name TEXT NOT NULL, -- lot info i.e. "Lot A", "Lot C"
+    lot_type parking_type_enum NOT NULL -- what type of lot it is!
+        CHECK (parking_type <> 'UNKNOWN')
 );
 
 CREATE TABLE user_info (
