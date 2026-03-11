@@ -1,13 +1,27 @@
-\documentclass[12pt]{article}
+\documentclass[12pt]{report}
 
 \usepackage[margin=1in]{geometry}
 \usepackage{setspace}
 \usepackage{enumitem}
 \usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage{pdflscape}
+\usepackage{graphicx}
 
+\definecolor{background_color}{RGB}{27,25,25}
+\pagecolor{background_color}
+\color{white}
 \titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
 \setstretch{1.2}
 
+\renewcommand{\thesection}{HW \#\arabic{section}}   % sections: HW #1, HW #2, ...
+\renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}}   % subsections: 1.1, 1.2, ...
+\titleformat{\section}
+  {\normalfont\Large\bfseries\clearpage}  % <-- page break added here
+  {HW \#\arabic{section}}
+  {1em}
+  {}
+  
 \title{UMBC Parking Management System\\Database Design Proposal}
 \author{Mateo Jacome, Jason Chen}
 \date{Mar 3 2026}
@@ -16,9 +30,9 @@
 
 \maketitle
 
-\section*{Executive Summary}
+\section{Executive Summary}
 
-\subsection*{Problem Statement}
+\subsection{Problem Statement}
 
 Parking at a large commuter campus such as UMBC is inefficient, stressful, and difficult to enforce. Students frequently waste valuable time searching for open spaces. Visitors struggle to locate valid parking without clear guidance. Faculty and staff require access to restricted or premium areas. Meanwhile, enforcement is largely reactive and labor-intensive, relying on officers instead of automated validation mechanisms.
 
@@ -26,7 +40,7 @@ The core problem is the absence of a centralized, real-time database system that
 
 The proposed UMBC Parking Management System addresses this issue by implementing a PostgreSQL-backed database that manages parking as a real-time, data-driven ecosystem.
 
-\subsection*{Parking Users}
+\subsection{Parking Users}
 
 The system supports multiple categories of users:
 
@@ -34,12 +48,9 @@ The system supports multiple categories of users:
     \item \textbf{Commuter Students} -- Purchase student permits and park in designated student lots.
     \item \textbf{Faculty and Staff} -- Hold faculty/staff permits and access restricted premium zones.
     \item \textbf{Visitors and Guest Lecturers} -- Reserve temporary parking spaces online and pay per visit.
-    \item \textbf{Parking Administration} -- Manage permits, pricing structures, enforcement rules, and reporting.
-    \item \textbf{Automated Enforcement System} -- Generates violations based on database validation rules.
-    \item \textbf{Ground Sensors (IoT Devices)} -- Automatically update occupancy and trigger validation checks.
 \end{itemize}
 
-\subsection*{Scope of Implementation}
+\subsection{Scope of Implementation}
 
 This project will implement a PostgreSQL database system that includes:
 
@@ -88,7 +99,6 @@ This project will implement a PostgreSQL database system that includes:
 
     \item \textbf{Payments}
     \begin{itemize}
-        \item Record reservation payments.
         \item Record ticket payments.
         \item Track outstanding balances.
     \end{itemize}
@@ -105,13 +115,12 @@ This project will implement a PostgreSQL database system that includes:
     \item \textbf{Concurrency Control}
     \begin{itemize}
         \item Prevent race conditions during reservation.
-        \item Maintain consistency during simultaneous sensor updates.
     \end{itemize}
 \end{enumerate}
 
 This scope focuses specifically on the database design, implementation, constraints, indexing, realistic operations, and concurrency control. It does not include a full mobile or web application interface.
 
-\section*{Concrete Use Cases}
+\subsection{Concrete Use Cases}
 
 The database must support the following operations:
 
@@ -119,7 +128,7 @@ The database must support the following operations:
     \item Register a new user (student, faculty, or visitor).
     \item Add one or more vehicles to a user account.
     \item Purchase and assign a parking permit to a user.
-    \item Define parking lots, zones, rows, and individual parking spots.
+    \item Define parking lots and individual parking spots.
     \item Associate permit types with allowed zones.
     \item Query real-time available parking spots in a specific lot.
     \item Create a visitor reservation for a specific date and time.
@@ -133,5 +142,14 @@ The database must support the following operations:
     \item Detect expired permits and flag vehicles as invalid.
     \item Handle simultaneous reservation attempts without data corruption.
 \end{itemize}
+
+\section{Requirements \& Conceptual Design}
+
+\subsection{ER Diagram}
+To see full image click on \verb|parking-er-diagram.png|
+\begin{center}
+\includegraphics[width=\textwidth, keepaspectratio]{parking-er-diagram.png}
+\end{center}
+
 
 \end{document}
