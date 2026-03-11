@@ -1,53 +1,7 @@
 \documentclass[12pt]{report}
 
-\usepackage[margin=1in]{geometry}
-\usepackage{setspace}
-\usepackage{enumitem}
-\usepackage{titlesec}
-\usepackage{xcolor}
-\usepackage{pdflscape}
-\usepackage{graphicx}
-\usepackage{minted}
-\usepackage{fontspec}
-
-\setmonofont{JetBrains Mono}
-
-\definecolor{background_color}{RGB}{27,25,25}
-\definecolor{codebg}{RGB}{47,45,45}
-
-\pagecolor{background_color}
-\color{white}
-\usemintedstyle{monokai}
-\setminted{
-    bgcolor=codebg,
-    breaklines,
-    fontsize=\footnotesize,       % makes the code smaller
-    baselinestretch=1.3    % increases line spacing a bit
-}
-
-\setstretch{1.2}
-
-% SECTION NUMBERING FOR PRINT
-\renewcommand{\thesection}{HW \#\arabic{section}}
-\renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}}
-
-% SECTION STYLE
-\titleformat{\section}
-  {\normalfont\Large\bfseries}
-  {\thesection} % Uses HW #1 in printed title
-  {1em}
-  {}
-
-% Start each section on a new page
-\let\oldsection\section
-\renewcommand{\section}[1]{%
-    \clearpage%
-    % Add to TOC with normal numbering
-    \addtocontents{toc}{\protect\setcounter{tocdepth}{2}}%
-    \refstepcounter{section}% increment section counter
-    \addcontentsline{toc}{section}{\arabic{section}\quad #1}% <-- TOC number only
-    \oldsection*{HW \#\arabic{section}\quad #1}% <-- printed section
-}
+% Load preamble
+\input{preamble.tex}
 
 \title{UMBC Parking Management System\\Database Design Proposal}
 \author{Mateo Jacome, Jason Chen}
@@ -178,9 +132,9 @@ The database must support the following operations:
 This section will more rigourously define the requirements, constraints, roles, as well as include an ER diagram.
 
 \subsection{ER Diagram}
-    To see full image click on \verb|er_diagram.png|
+    To see full image click on \inlinecode{img/er\_diagram.png}
     \begin{center}
-    \includegraphics[width=\textwidth, keepaspectratio]{er_diagram.png}
+    \includegraphics[width=\textwidth, keepaspectratio]{img/er_diagram.png}
     \end{center}
 
 \subsection{Requirements and Constraints}
@@ -191,27 +145,27 @@ The following business rules define constraints for the UMBC Parking Management 
 
 \item Each user may register multiple vehicles, but each license plate must be unique across the system.
 
-Enforcement: \textbf{(A)} A UNIQUE constraint is applied to the car\_info.plate column.
+Enforcement: \textbf{(A)} A UNIQUE constraint is applied to the \inlinecode{car\_info.plate} column.
 
 \item Each parking spot within a lot must be uniquely identified by its lot and space number.
 
-Enforcement: \textbf{(A)} A composite UNIQUE constraint is applied to (lot\_id, space) in the parking\_spot table.
+Enforcement: \textbf{(A)} A composite UNIQUE constraint is applied to (\inlinecode{lot\_id}, \inlinecode{space}) in the \inlinecode{parking\_spot} table.
 
 \item A reservation must have a start time that occurs before its end time.
 
-Enforcement: \textbf{(A)} A CHECK constraint ensures start\_time \textless end\_time.
+Enforcement: \textbf{(A)} A CHECK constraint ensures \inlinecode{start\_time \textless end\_time}. % NEED TO FIX TEXTLESS 
 
 \item A permit must expire after it is issued.
 
-Enforcement: \textbf{(A)} A CHECK constraint ensures expiration\_date \textgreater issued\_date.
+Enforcement: \textbf{(A)} A CHECK constraint ensures \inlinecode{expiration\_date \textgreater issued\_date}.
 
 \item Monetary values for fines and payments must be positive.
 
-Enforcement: \textbf{(A)} CHECK constraints ensure values such as fine\_amount\_cents \textgreater 0 and amount\_cents \textgreater 0.
+Enforcement: \textbf{(A)} CHECK constraints ensure values such as \inlinecode{fine\_amount\_cents \textgreater 0} and \inlinecode{amount\_cents \textgreater 0}.
 
 \item A parking spot cannot be reserved by two users for overlapping time intervals.
 
-Enforcement: \textbf{(B)} Implemented using a PostgreSQL trigger that looks at the time range derived from start\_time and end\_time.
+Enforcement: \textbf{(B)} Implemented using a PostgreSQL trigger that looks at the time range derived from \inlinecode{start\_time} and \inlinecode{end\_time}.
 
 \item Only vehicles with a valid and unexpired permit may park in permit-restricted lots.
 
@@ -219,11 +173,11 @@ Enforcement: \textbf{(B)} Implemented using a trigger or application-level valid
 
 \item Visitor reservations must be confirmed before the space is considered locked.
 
-Enforcement: \textbf{(B)} Application logic ensures reservations transition from PENDING to CONFIRMED only after successful payment.
+Enforcement: \textbf{(B)} Application logic ensures reservations transition from \inlinecode{PENDING} to \inlinecode{CONFIRMED} only after successful payment.
 
 \item Sensor events must record an arrival or departure event with a timestamp.
 
-Enforcement: \textbf{(A)} Implemented using the sensor\_event\_type enum and a NOT NULL timestamp constraint.
+Enforcement: \textbf{(A)} Implemented using the \inlinecode{sensor\_event\_type} enum and a \inlinecode{NOT NULL} timestamp constraint.
 
 \item If a vehicle parks without authorization (no valid permit or reservation), the system must generate a parking violation ticket.
 
@@ -255,7 +209,7 @@ Finally, the schema models relationships such as vehicles belonging to users and
 \section{Logical Design}
 
 \subsection{Schema List}
-Here \verb|parking_type|, \verb|lot_type|, \verb|permit_type| and \verb|event_type| are all SQL enum types. I have defined them in \verb|db/migrations/01_enums.sql|
+Here \inlinecode{parking\_type}, \inlinecode{lot\_type}, \inlinecode{permit\_type} and \inlinecode{event\_type} are all SQL enum types. I have defined them in \inlinecode{db/migrations/01\_enums.sql}
 
 % Haskell syntax highlighing works surprsingly well!
 \begin{minted}{haskell}
@@ -287,5 +241,26 @@ Here \verb|parking_type|, \verb|lot_type|, \verb|permit_type| and \verb|event_ty
             FK -> Parking_Spot(id))
 
 \end{minted}
+
+\subsection{Naming Conventions}
+
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Convention} & \textbf{Examples} \\
+\midrule
+Table names: \inlinecode{snake\_case} nouns          & \inlinecode{user\_info}, \inlinecode{parking\_spot} \\
+Column names: \inlinecode{snake\_case}, descriptive  & \inlinecode{first\_name}, \inlinecode{start\_time} \\
+Primary keys: always \inlinecode{id}                  & \inlinecode{id} \\
+Foreign keys: \inlinecode{<table>\_id}                & \inlinecode{user\_id}, \inlinecode{parking\_spot\_id} \\
+Timestamps: descriptive                           & \inlinecode{start\_time}, \inlinecode{issue\_time}, \inlinecode{expiration\_date} \\
+Enums: clearly named                               & \inlinecode{parking\_type\_enum}, \inlinecode{sensor\_event\_type} \\
+\bottomrule
+\end{tabular}
+
+
+
+\subsection{Normalization Disucssion}
+
+
 
 \end{document}
