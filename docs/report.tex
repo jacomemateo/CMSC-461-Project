@@ -7,10 +7,23 @@
 \usepackage{xcolor}
 \usepackage{pdflscape}
 \usepackage{graphicx}
+\usepackage{minted}
+\usepackage{fontspec}
+
+\setmonofont{JetBrains Mono}
 
 \definecolor{background_color}{RGB}{27,25,25}
+\definecolor{codebg}{RGB}{47,45,45}
+
 \pagecolor{background_color}
 \color{white}
+\usemintedstyle{monokai}
+\setminted{
+    bgcolor=codebg,
+    breaklines,
+    fontsize=\footnotesize,       % makes the code smaller
+    baselinestretch=1.3    % increases line spacing a bit
+}
 
 \setstretch{1.2}
 
@@ -239,5 +252,40 @@ Sensor events are stored as individual event records instead of directly updatin
 Finally, the schema models relationships such as vehicles belonging to users and reservations referencing parking spots using foreign keys. These relationships ensure referential integrity and make it possible to query the system efficiently for operations such as finding available parking, verifying permits, or generating enforcement reports.
 
 
+\section{Logical Design}
+
+\subsection{Schema List}
+Here \verb|parking_type|, \verb|lot_type|, \verb|permit_type| and \verb|event_type| are all SQL enum types. I have defined them in \verb|db/migrations/01_enums.sql|
+
+% Haskell syntax highlighing works surprsingly well!
+\begin{minted}{haskell}
+
+    Lot_Info(id, name, lot_type)
+
+    User_Info(id, first_name, last_name, phone, email, parking_type)
+
+    Car_Info(id, plate, model, color, FK -> User_Info(id))
+
+    Parking_Spot(id, space, FK -> Lot_Info(id))
+
+    Reservation(id, start_time, end_time,
+                FK -> User_Info(id),
+                FK -> Car_Info(id),
+                FK -> Parking_Spot(id))
+
+    Sensor_Events(id, event_type, event_time,
+                FK -> Parking_Spot(id))
+
+    Permits(id, permit_type, issued_date, expiration_date,
+            FK -> User_Info(id))
+
+    Payments(id, amount_cents, date,
+            FK -> User_Info(id))
+
+    Tickets(id, issue_time, fine_amount_cents, status,
+            FK -> Car_Info(id),
+            FK -> Parking_Spot(id))
+
+\end{minted}
 
 \end{document}
