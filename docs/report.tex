@@ -11,17 +11,31 @@
 \definecolor{background_color}{RGB}{27,25,25}
 \pagecolor{background_color}
 \color{white}
-\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+
 \setstretch{1.2}
 
-\renewcommand{\thesection}{HW \#\arabic{section}}   % sections: HW #1, HW #2, ...
-\renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}}   % subsections: 1.1, 1.2, ...
+% SECTION NUMBERING FOR PRINT
+\renewcommand{\thesection}{HW \#\arabic{section}}
+\renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}}
+
+% SECTION STYLE
 \titleformat{\section}
-  {\normalfont\Large\bfseries\clearpage}  % \textless-- page break added here
-  {HW \#\arabic{section}}
+  {\normalfont\Large\bfseries}
+  {\thesection} % Uses HW #1 in printed title
   {1em}
   {}
-  
+
+% Start each section on a new page
+\let\oldsection\section
+\renewcommand{\section}[1]{%
+    \clearpage%
+    % Add to TOC with normal numbering
+    \addtocontents{toc}{\protect\setcounter{tocdepth}{2}}%
+    \refstepcounter{section}% increment section counter
+    \addcontentsline{toc}{section}{\arabic{section}\quad #1}% <-- TOC number only
+    \oldsection*{HW \#\arabic{section}\quad #1}% <-- printed section
+}
+
 \title{UMBC Parking Management System\\Database Design Proposal}
 \author{Mateo Jacome, Jason Chen}
 \date{\today}
@@ -30,7 +44,11 @@
 
 \maketitle
 
+\tableofcontents
+\newpage
+
 \section{Executive Summary}
+
 
 \subsection{Problem Statement}
 
