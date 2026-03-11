@@ -63,7 +63,7 @@ CREATE TABLE payments (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     user_id UUID REFERENCES user_info(id),
     amount_cents INT NOT NULL
-        CHECK (amount_cents > 0 AND amount_cents < 50000)
+        CHECK (amount_cents > 0 AND amount_cents < 50000),
     date TIMESTAMPTZ NOT NULL
 );
 

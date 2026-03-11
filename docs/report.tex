@@ -17,7 +17,7 @@
 \renewcommand{\thesection}{HW \#\arabic{section}}   % sections: HW #1, HW #2, ...
 \renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}}   % subsections: 1.1, 1.2, ...
 \titleformat{\section}
-  {\normalfont\Large\bfseries\clearpage}  % <-- page break added here
+  {\normalfont\Large\bfseries\clearpage}  % \textless-- page break added here
   {HW \#\arabic{section}}
   {1em}
   {}
@@ -144,12 +144,82 @@ The database must support the following operations:
 \end{itemize}
 
 \section{Requirements \& Conceptual Design}
+This section will more rigourously define the requirements, constraints, roles, as well as include an ER diagram.
 
 \subsection{ER Diagram}
-To see full image click on \verb|parking-er-diagram.png|
-\begin{center}
-\includegraphics[width=\textwidth, keepaspectratio]{parking-er-diagram.png}
-\end{center}
+    To see full image click on \verb|er_diagram.png|
+    \begin{center}
+    \includegraphics[width=\textwidth, keepaspectratio]{er_diagram.png}
+    \end{center}
+
+\subsection{Requirements and Constraints}
+
+The following business rules define constraints for the UMBC Parking Management System. Each rule is labeled with how it is enforced: (A) through database table constraints such as PRIMARY KEY, FOREIGN KEY, UNIQUE, or CHECK, or (B) through triggers, functions, or application logic.
+
+\begin{enumerate}[label=\textbf{Rule \arabic*:}]
+
+\item Each user may register multiple vehicles, but each license plate must be unique across the system.
+
+Enforcement: \textbf{(A)} A UNIQUE constraint is applied to the car\_info.plate column.
+
+\item Each parking spot within a lot must be uniquely identified by its lot and space number.
+
+Enforcement: \textbf{(A)} A composite UNIQUE constraint is applied to (lot\_id, space) in the parking\_spot table.
+
+\item A reservation must have a start time that occurs before its end time.
+
+Enforcement: \textbf{(A)} A CHECK constraint ensures start\_time \textless end\_time.
+
+\item A permit must expire after it is issued.
+
+Enforcement: \textbf{(A)} A CHECK constraint ensures expiration\_date \textgreater issued\_date.
+
+\item Monetary values for fines and payments must be positive.
+
+Enforcement: \textbf{(A)} CHECK constraints ensure values such as fine\_amount\_cents \textgreater 0 and amount\_cents \textgreater 0.
+
+\item A parking spot cannot be reserved by two users for overlapping time intervals.
+
+Enforcement: \textbf{(B)} Implemented using a PostgreSQL trigger that looks at the time range derived from start\_time and end\_time.
+
+\item Only vehicles with a valid and unexpired permit may park in permit-restricted lots.
+
+Enforcement: \textbf{(B)} Implemented using a trigger or application-level validation that checks the vehicle's permit type and expiration date.
+
+\item Visitor reservations must be confirmed before the space is considered locked.
+
+Enforcement: \textbf{(B)} Application logic ensures reservations transition from PENDING to CONFIRMED only after successful payment.
+
+\item Sensor events must record an arrival or departure event with a timestamp.
+
+Enforcement: \textbf{(A)} Implemented using the sensor\_event\_type enum and a NOT NULL timestamp constraint.
+
+\item If a vehicle parks without authorization (no valid permit or reservation), the system must generate a parking violation ticket.
+
+Enforcement: \textbf{(B)} Implemented using a trigger that listens for arrival events and inserts a record into the tickets table when authorization fails.
+
+\end{enumerate}
+
+\subsection{Concurrency Scenario}
+
+A concurrency scenario occurs when two users attempt to reserve the same parking spot at nearly the same time. For example, User A and User B both attempt to reserve parking spot S in Lot 3 from 9:00 AM to 12:00 PM.
+
+Without proper concurrency control, both reservations could be inserted into the database, creating a double booking. The system must guarantee that only one reservation succeeds.
+
+To enforce this requirement, the database uses a PostgreSQL trigger that runs BEFORE insertion into the reservations table, that prevents overlapping time ranges for the same parking spot. When the first reservation transaction commits successfully, any subsequent reservation that overlaps with that time interval will automatically fail.
+
+This approach ensures correctness even when multiple transactions occur simultaneously.
+
+\subsection{Rationale}
+
+The design separates long-term policy information from transactional records in order to improve flexibility and maintainability. Permit classifications (such as student, faculty, or visitor) represent policy rules that determine which parking areas are accessible to different groups. By separating permit types from individual permit records, the system allows parking policies to evolve independently from historical permit data.
+
+Reservations are modeled using explicit start and end timestamps rather than a single date field so that the system can support flexible time windows. This design enables features such as hourly reservations, overlapping time checks, and historical analysis of parking usage patterns.
+
+Sensor events are stored as individual event records instead of directly updating a parking spot's status. This event-driven model preserves a complete history of arrivals and departures, which is valuable for analytics, auditing, and debugging sensor behavior. A trigger or background process can interpret these events to update occupancy status, validate permits, or generate tickets when violations occur.
+
+Finally, the schema models relationships such as vehicles belonging to users and reservations referencing parking spots using foreign keys. These relationships ensure referential integrity and make it possible to query the system efficiently for operations such as finding available parking, verifying permits, or generating enforcement reports.
+
 
 
 \end{document}
