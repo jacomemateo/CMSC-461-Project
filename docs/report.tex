@@ -209,7 +209,9 @@ Finally, the schema models relationships such as vehicles belonging to users and
 \section{Logical Design}
 
 \subsection{Schema List}
-Here \inlinecode{parking\_type}, \inlinecode{lot\_type}, \inlinecode{permit\_type} and \inlinecode{event\_type} are all SQL enum types. I have defined them in \inlinecode{db/migrations/01\_enums.sql}
+Here \inlinecode{parking\_type}, \inlinecode{lot\_type}, \inlinecode{permit\_type} and \inlinecode{event\_type} are all SQL enum types. We have defined them in \inlinecode{db/migrations/01\_enums.sql}
+
+My ER Diagram takes normalization into account in order to avoid issues like redundancy and to ensure data consistency.
 
 % Haskell syntax highlighing works surprsingly well!
 \begin{minted}{haskell}
@@ -242,6 +244,20 @@ Here \inlinecode{parking\_type}, \inlinecode{lot\_type}, \inlinecode{permit\_typ
 
 \end{minted}
 
+\subsection{Candidate Keys}
+
+Each table uses a UUID (specifically, we're gonna use uuid v7 because it includes a time stamp so it's time sortable outa the box and will make indexing more efficient) primary key named \inlinecode{id}, chosen because it is globally unique and immutable.  It's just better!!
+
+Some tables also have additional candidate keys:
+
+\begin{itemize}
+    \item \inlinecode{user\_info}: \inlinecode{email} and \inlinecode{phone} are unique and could serve as candidate keys.
+    \item \inlinecode{car\_info}: \inlinecode{plate} is unique and could also serve as a candidate key.
+    \item \inlinecode{parking\_spot}: the combination \inlinecode{(lot\_id, space)} is unique, but we use \inlinecode{id} as the primary key.
+\end{itemize}
+
+No composite primary keys were required because each entity can be uniquely identified using a single UUID.
+
 \subsection{Naming Conventions}
 
 \begin{tabular}{@{}ll@{}}
@@ -259,8 +275,81 @@ Enums: clearly named                               & \inlinecode{parking\_type\_
 
 
 
-\subsection{Normalization Disucssion}
+\subsection{Normalization}
+
+\textbf{Example 1 - User Info}
+
+If we had designed my \inlinecode{user\_info} table to also include vehicle information it would've looked like the image below. This approach allows us to store a user with their car information in the same table but it runs into many issues.
+
+For one, if a user wants to register more than one car, then we'd have to duplicate their user information just to add another vehicle which would lead to redundancy!
+
+This approach would also make it so that users who own no cars have all those extra columns there for no reason.
+
+Furthermore, if a user had for example 10 cars registered, and they wanted to change their name we'd then have to update 10 different rows! And if we forget to update all 10 rows then we'd have an anomaly because some of the rows will have the user's new name and some will have their old name. By separating the data into two tables we avoid all of these issues. 
+
+\begin{minted}{haskell}
+
+    User_Info(id, first_name, last_name, phone, email, parking_type, plate, model, color)
+
+\end{minted}
+
+Now the user data lives independently of the vehicle information and all the above issues are fixed. If the user wants to change their name, we have only have to update one row. A lot simpler.
+
+\begin{minted}{haskell}
+
+    User_Info(id, first_name, last_name, phone, email, parking_type)
+
+    Car_Info(id, plate, model, color, FK -> User_Info(id))
+
+\end{minted}
 
 
+\textbf{Example 2 - Parking Spot}
+
+Another example of normalization can be seen in the design of the
+\inlinecode{parking\_spot} table.
+
+Suppose instead that the reservation table stored the parking space
+number and the lot information directly, as shown below.
+
+\begin{minted}{haskell}
+
+    Reservation(id, start_time, end_time, user_id, car_id, lot_name, space)
+
+\end{minted}
+
+This approach would repeat the same parking lot and space information
+for every reservation that occurs at that spot. If a parking spot is
+reserved hundreds of times throughout a semester, then the same lot
+name and space number would be duplicated in hundreds of rows.
+
+This creates an update anomaly. If the name of a parking lot
+changes, then every reservation referencing that lot would need to be
+updated. If even one row is missed, the database would contain
+inconsistent data.
+
+There is also a potential delete anomaly. If the last
+reservation associated with a particular parking space is deleted, the
+database would lose all information about that parking space.
+
+To avoid these issues, parking spots are stored in their own table and
+referenced through a foreign key.
+
+\begin{minted}{haskell}
+
+    Parking_Spot(id, space, FK -> Lot_Info(id))
+
+    Reservation(id, start_time, end_time,
+                FK -> User_Info(id),
+                FK -> Car_Info(id),
+                FK -> Parking_Spot(id))
+
+\end{minted}
+
+With this design, each parking spot is stored exactly once in the
+\inlinecode{parking\_spot} table. Reservations simply reference the
+spot using its UUID. This eliminates redundancy and ensures that
+changes to parking infrastructure only need to be made in a single
+location.
 
 \end{document}
