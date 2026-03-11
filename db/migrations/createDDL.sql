@@ -13,8 +13,8 @@ CREATE TABLE user_info (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
-    phone TEXT UNIQUE NOT NULL,
-    email TEXT UNIQUE NOT NULL,
+    phone TEXT UNIQUE NOT NULL, -- I'm assuming that phone and email
+    email TEXT UNIQUE NOT NULL, -- will be validated in the frontend
     parking_type parking_type_enum NOT NULL
         CHECK (parking_type <> 'UNKNOWN')
 );
@@ -68,11 +68,18 @@ CREATE TABLE payments (
     date TIMESTAMPTZ NOT NULL
 );
 
+-- we're not gonna implement "late fees" because it's too much work!
 CREATE TABLE tickets (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     car_id UUID REFERENCES car_info(id),
     parking_spot_id UUID REFERENCES parking_spot(id),
     issue_time TIMESTAMPTZ NOT NULL,
-    fine_amount_cents INT NOT NULL CHECK (fine_amount_cents > 0),
-    status TEXT NOT NULL
+    violation_code TEXT NOT NULL REFERENCES violations(code), -- We get ammount from here
+    is_resolved BOOLEAN NOT NULL
+);
+
+CREATE TABLE violations (
+    code TEXT PRIMARY KEY,
+    description TEXT NOT NULL,
+    ammount_cents INT NOT NULL CHECK (ammount_cents > 0)
 );

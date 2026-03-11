@@ -218,6 +218,8 @@ My ER Diagram takes normalization into account in order to avoid issues like red
 
     Lot_Info(id, name, lot_type)
 
+    Violations(code, description, ammount_cents)
+
     User_Info(id, first_name, last_name, phone, email, parking_type)
 
     Car_Info(id, plate, model, color, FK -> User_Info(id))

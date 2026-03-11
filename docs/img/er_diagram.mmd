@@ -1,6 +1,6 @@
 ---
 config:
-  theme: neutral
+  theme: dark
   look: neo
   layout: elk
 ---
@@ -10,6 +10,12 @@ erDiagram
 		uuid id PK ""  
 		text name  ""  
 		parking_type_enum lot_type  ""  
+	}
+
+	VIOLATIONS {
+		text code PK ""  
+		text description  ""  
+		int ammount_cents  ""  
 	}
 
 	USER_INFO {
@@ -71,8 +77,8 @@ erDiagram
 		uuid car_id FK ""  
 		uuid parking_spot_id FK ""  
 		timestamptz issue_time  ""  
-		int fine_amount_cents  ""  
-		text status  ""  
+		text violation_code  FK ""  
+		boolean is_resolved  ""  
 	}
 
 	SENSOR_EVENT_TYPE {
@@ -98,3 +104,4 @@ erDiagram
 	PARKING_TYPE_ENUM||--||LOT_INFO:"lot_type"
 	PARKING_TYPE_ENUM||--||USER_INFO:"parking_type"
 	PARKING_TYPE_ENUM||--||PERMITS:"permit_type"
+	VIOLATIONS||--||TICKETS:"code"
