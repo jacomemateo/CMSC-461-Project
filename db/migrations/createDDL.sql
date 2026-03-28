@@ -74,12 +74,12 @@ CREATE TABLE tickets (
     car_id UUID REFERENCES car_info(id),
     parking_spot_id UUID REFERENCES parking_spot(id),
     issue_time TIMESTAMPTZ NOT NULL,
-    violation_code TEXT NOT NULL REFERENCES violations(code), -- We get ammount from here
+    violation_code TEXT NOT NULL REFERENCES violations(code), -- We get amount from here
     is_resolved BOOLEAN NOT NULL
 );
 
 CREATE TABLE violations (
     code TEXT PRIMARY KEY,
     description TEXT NOT NULL,
-    ammount_cents INT NOT NULL CHECK (ammount_cents > 0)
+    amount_cents INT NOT NULL CHECK (amount_cents > 0)
 );
