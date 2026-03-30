@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>name</key>
+    <string>Gruvbox Custom</string>
+    <key>settings</key>
+    <array>
+        <!-- Global settings -->
+        <dict>
+            <key>settings</key>
+            <dict>
+                <key>background</key>
+                <string>#282828</string> <!-- bg -->
+                <key>foreground</key>
+                <string>#ebdbb2</string> <!-- fg -->
+                <key>caret</key>
+                <string>#fbf1c7</string> <!-- fg0 -->
+                <key>selection</key>
+                <string>#3c3836</string> <!-- bg1 -->
+            </dict>
+        </dict>
+
+        <!-- Comment -->
+        <dict>
+            <key>name</key>
+            <string>Comment</string>
+            <key>scope</key>
+            <string>comment</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key>
+                <string>#928374</string> <!-- gray -->
+                <key>fontStyle</key>
+                <string>italic</string>
+            </dict>
+        </dict>
+
+        <!-- String -->
+        <dict>
+            <key>name</key>
+            <string>String</string>
+            <key>scope</key>
+            <string>string</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key>
+                <string>#b8bb26</string> <!-- green -->
+            </dict>
+        </dict>
+
+        <!-- Number -->
+        <dict>
+            <key>name</key>
+            <string>Number</string>
+            <key>scope</key>
+            <string>constant.numeric</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key>
+                <string>#d3869b</string> <!-- purple -->
+            </dict>
+        </dict>
+
+        <!-- Keyword -->
+        <dict>
+            <key>name</key>
+            <string>Keyword</string>
+            <key>scope</key>
+            <string>keyword</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key>
+                <string>#fb4934</string> <!-- red -->
+            </dict>
+        </dict>
+
+        <!-- Function / Entity -->
+        <dict>
+            <key>name</key>
+            <string>Function</string>
+            <key>scope</key>
+            <string>entity.name.function</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key>
+                <string>#fabd2f</string> <!-- yellow -->
+            </dict>
+        </dict>
+
+        <!-- Variable -->
+        <dict>
+            <key>name</key>
+            <string>Variable</string>
+            <key>scope</key>
+            <string>variable</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key>
+                <string>#83a598</string> <!-- blue -->
+            </dict>
+        </dict>
+
+        <!-- Type -->
+        <dict>
+            <key>name</key>
+            <string>Type</string>
+            <key>scope</key>
+            <string>storage.type</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key>
+                <string>#fe8019</string> <!-- orange -->
+            </dict>
+        </dict>
+    </array>
+</dict>
+</plist>
