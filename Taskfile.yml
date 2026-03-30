@@ -1,0 +1,42 @@
+version: '3'
+
+tasks:
+  default:
+    cmds:
+      - task --list
+
+  create_db:
+    desc: Start the database container in the background
+    cmds:
+      - docker compose up -d
+
+  seed:
+    desc: Seeds the database with the sample data from db/queries/loadAll.sql
+    cmds:
+      - docker exec -i parking-db psql -U postgres -d parking < db/queries/loadAll.sql
+
+  connect:
+    desc: Connect to the database via psql
+    interactive: true
+    cmds:
+      - docker exec -it parking-db psql -U postgres -d parking
+
+  shutdown:
+    desc: Stop and remove database containers
+    cmds:
+      - docker compose down
+
+  nuke:
+    desc: Stop containers and delete all volumes (data loss!)
+    cmds:
+      - docker compose down -v
+
+  logs:
+    desc: View the database container logs
+    cmds:
+      - docker logs parking-db
+
+  smoke_test:
+    desc: Run the smoke test SQL script against the database
+    cmds:
+      - docker exec -i parking-db psql -U postgres -d parking < db/test/smoke_test.sql
