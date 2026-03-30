@@ -68,6 +68,13 @@ CREATE TABLE payments (
     date TIMESTAMPTZ NOT NULL
 );
 
+
+CREATE TABLE violations (
+    code TEXT PRIMARY KEY,
+    description TEXT NOT NULL,
+    amount_cents INT NOT NULL CHECK (amount_cents > 0)
+);
+
 -- we're not gonna implement "late fees" because it's too much work!
 CREATE TABLE tickets (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
@@ -78,8 +85,3 @@ CREATE TABLE tickets (
     is_resolved BOOLEAN NOT NULL
 );
 
-CREATE TABLE violations (
-    code TEXT PRIMARY KEY,
-    description TEXT NOT NULL,
-    amount_cents INT NOT NULL CHECK (amount_cents > 0)
-);
