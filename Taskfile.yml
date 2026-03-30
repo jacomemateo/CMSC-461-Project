@@ -4,10 +4,6 @@ tasks:
   default:
     cmds:
       - task --list
-  fmt:
-    desc: Format SQL files (compact version)
-    cmds:
-      - find db -type f -name "*.sql" -exec pg_format -i --wrap-limit 200 --space 2 {} +
 
   create_db:
     desc: Start the database container in the background
