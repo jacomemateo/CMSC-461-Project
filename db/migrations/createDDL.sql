@@ -1,3 +1,4 @@
+-- Create all tables
 CREATE TYPE sensor_event_type AS ENUM (
   'ARRIVAL',
   'DEPARTURE'
