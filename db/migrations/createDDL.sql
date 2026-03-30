@@ -6,7 +6,7 @@ CREATE TABLE lot_info (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     name TEXT NOT NULL, -- lot info i.e. "Lot A", "Lot C"
     lot_type parking_type_enum NOT NULL -- what type of lot it is!
-        CHECK (parking_type <> 'UNKNOWN')
+        CHECK (lot_type <> 'UNKNOWN')
 );
 
 CREATE TABLE user_info (
