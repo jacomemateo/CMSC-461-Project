@@ -1,11 +1,11 @@
 -- code: language=postgres
 CREATE TABLE product_info (
-    product_id uuid PRIMARY KEY DEFAULT uuidv7 (),
-    name text NOT NULL,
-    price_cents integer CHECK (price_cents >= 0) NOT NULL, -- price in cents to avoid floating point issues
-    date_created timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    -- I know I need a trigger but idk how to implement
-    date_modified timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL
+  product_id uuid PRIMARY KEY DEFAULT uuidv7 (),
+  name text NOT NULL,
+  price_cents integer CHECK (price_cents >= 0) NOT NULL, -- price in cents to avoid floating point issues
+  date_created timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  -- I know I need a trigger but idk how to implement
+  date_modified timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 -- Seed data for products
@@ -29,9 +29,8 @@ VALUES
 ('Monster Energy', 349);
 
 SELECT
-    *
+  *
 FROM
-    product_info
+  product_info
 WHERE
-    name ILIKE '%tea%';
-
+  name ILIKE '%tea%';

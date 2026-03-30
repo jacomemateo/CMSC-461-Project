@@ -5,9 +5,9 @@ tasks:
     cmds:
       - task --list
   fmt:
-    desc: Use pgFormatter to format all sql files in db/
+    desc: Format SQL files (compact version)
     cmds:
-      - find db -type f -name "*.sql" -exec pg_format -i {} +
+      - find db -type f -name "*.sql" -exec pg_format -i --wrap-limit 200 --space 2 {} +
 
   create_db:
     desc: Start the database container in the background
