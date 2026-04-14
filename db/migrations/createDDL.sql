@@ -90,3 +90,19 @@ CREATE TABLE tickets (
   violation_code text NOT NULL REFERENCES violations (code), -- We get amount from here
   is_resolved boolean NOT NULL
 );
+
+-- view to get CurrentActivePermits
+CREATE VIEW view_active_permits AS
+SELECT u.first_name, u.last_name, u.email, p.permit_type, p.expiration_date
+FROM user_info u
+JOIN permits p ON u.id = p.user_id
+WHERE p.expiration_date > NOW();
+
+-- view to get CurrentLotAvailability
+CREATE VIEW view_lot_availability AS
+SELECT l.name, l.lot_type, 
+       COUNT(s.id) FILTER (WHERE s.is_occupied = FALSE) AS available_spots,
+       COUNT(s.id) AS total_spots
+FROM lot_info l
+JOIN parking_spot s ON l.id = s.lot_id
+GROUP BY l.id, l.name, l.lot_type;
