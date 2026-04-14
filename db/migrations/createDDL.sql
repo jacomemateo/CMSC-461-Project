@@ -39,6 +39,7 @@ CREATE TABLE parking_spot (
   id uuid PRIMARY KEY DEFAULT uuidv7 (),
   lot_id uuid REFERENCES lot_info (id),
   space int NOT NULL,
+  is_occupied boolean NOT NULL DEFAULT FALSE,
   UNIQUE (lot_id, space)
 );
 
