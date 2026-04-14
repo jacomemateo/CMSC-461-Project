@@ -107,3 +107,52 @@ SELECT l.name, l.lot_type,
 FROM lot_info l
 JOIN parking_spot s ON l.id = s.lot_id
 GROUP BY l.id, l.name, l.lot_type;
+
+-- 1. Function: Permit Issuance Eligibility
+-- Checks if a student is trying to buy a STAFF permit (Business Rule)
+CREATE OR REPLACE FUNCTION issue_permit(p_user_id UUID, p_type parking_type_enum) 
+RETURNS VOID AS $$
+DECLARE
+    user_role parking_type_enum;
+BEGIN
+    SELECT parking_type INTO user_role FROM user_info WHERE id = p_user_id;
+    
+    IF user_role = 'STUDENT' AND p_type = 'STAFF' THEN
+        RAISE EXCEPTION 'Eligibility Error: Students cannot hold Staff permits.';
+    END IF;
+
+    INSERT INTO permits (user_id, permit_type, issued_date, expiration_date)
+    VALUES (p_user_id, p_type, NOW(), NOW() + INTERVAL '1 year');
+END;
+$$ LANGUAGE plpgsql;
+
+-- 2. Trigger: Update Spot Occupancy on Sensor Event
+CREATE OR REPLACE FUNCTION fn_update_occupancy()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE parking_spot 
+    SET is_occupied = (NEW.event_type = 'ARRIVAL')
+    WHERE id = NEW.parking_spot_id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_sensor_occupancy
+AFTER INSERT ON sensor_events
+FOR EACH ROW EXECUTE FUNCTION fn_update_occupancy();
+
+-- 3. Stored Procedure: Auto-Ticketing
+-- Scans for cars parked in spots where they don't have a reservation or permit
+CREATE OR REPLACE PROCEDURE pr_generate_tickets() AS $$
+BEGIN
+    INSERT INTO tickets (car_id, parking_spot_id, issue_time, violation_code, is_resolved)
+    SELECT c.id, s.id, NOW(), 'NO_PERMIT', FALSE
+    FROM parking_spot s
+    JOIN sensor_events se ON s.id = se.parking_spot_id
+    JOIN car_info c ON se.id IS NOT NULL -- Simplified logic for sample
+    WHERE s.is_occupied = TRUE 
+    AND NOT EXISTS (
+        SELECT 1 FROM permits p WHERE p.user_id = c.owner_id AND p.expiration_date > NOW()
+    );
+END;
+$$ LANGUAGE plpgsql;

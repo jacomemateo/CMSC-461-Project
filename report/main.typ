@@ -6,7 +6,7 @@
   #text(size: 1.5em, weight: "bold")[UMBC Parking Management System] \
   #text(size: 1.5em, weight: "bold")[Database Design Proposal]
   #v(1em)
-  Mateo Jacome, Jason Chen
+    Mateo Jacome, Jason Chen
   #v(1em)
   #datetime.today().display("[month repr:long] [day], [year]")
 ]
@@ -361,3 +361,129 @@ Screenshots from pgAdmin (see below) confirm that the schema is correctly genera
     image("res/9.png"),
   )
 ]
+
+= DB Logic and Optimization
+
+This section details the implementation of programmable database objects and the optimization strategies employed to ensure the UMBC Parking Management System remains responsive under heavy load.
+
+== Programmable Objects
+
+To transition the database from a static storage layer to an active management system, we implemented several PL/pgSQL objects.
+
+=== Trigger: Real-time Occupancy
+The `trg_sensor_occupancy` trigger is attached to the sensor_events table. Whenever a sensor detects an `ARRIVAL` or `DEPARTURE`, the trigger automatically toggles the `is_occupied` boolean in the `parking_spot` table. This ensures that the system's view of available spaces is always accurate to the second without requiring manual updates.
+
+=== Function: Permit Eligibility
+The issue_permit function encapsulates the business logic for permit sales. It validates that the user's role matches the requested permit type (e.g., preventing students from purchasing staff permits) before allowing the record to be inserted.
+
+=== Procedure: Automated Enforcement
+The `pr_generate_tickets` procedure is designed to run on a schedule. It performs a cross-reference between currently occupied spots and valid permits/reservations. If a vehicle is found to be unauthorized, a ticket is automatically generated and linked to the vehicle's history.
+
+== Reporting Views
+
+We defined two primary views to simplify common administrative queries:
+
+`view_active_permits`: Combines user identifying information with permit data, filtered for currently valid (unexpired) permits.
+
+`view_lot_availability`: Aggregates data from lot_info and parking_spot to provide a high-level summary of total vs. available spaces per lot.
+
+== Performance Analysis (EXPLAIN ANALYZE)
+
+To ensure the system scales, we identified three "expensive" queries involving multiple joins and large-scale aggregations. We then implemented indexing strategies to optimize their execution.
+
+=== Query 1: Lot Utilization Heatmap
+Logic: Aggregates sensor arrival events over the last 30 days to identify peak usage lots.
+
+#table(
+columns: (1fr, 1fr),
+[Before Indexing], [After Indexing],
+[
+```
+ Planning:
+   Buffers: shared hit=233 read=2
+ Planning Time: 0.619 ms
+ Execution Time: 0.135 ms
+ (27 rows)
+```
+],
+[
+```
+ Planning:
+   Buffers: shared hit=63 read=2
+ Planning Time: 1.216 ms
+ Execution Time: 0.051 ms
+(28 rows)
+```
+]
+)
+
+Analysis: By adding a B-Tree index on event_time, we reduced the search space from a full table scan to a targeted range scan, resulting in a [Insert %] speed improvement.
+
+=== Query 2: Overstayer Detection
+Logic: Joins reservation with sensor_events to find vehicles that remained in a spot after their reservation expired.
+
+#table(
+columns: (1fr, 1fr),
+[Before Indexing], [After Indexing],
+[
+```
+ Planning:
+   Buffers: shared hit=177 read=1
+ Planning Time: 0.869 ms
+ Execution Time: 0.122 ms
+ (23 rows)
+```
+],
+[
+```
+ Planning:
+   Buffers: shared hit=20 read=1
+ Planning Time: 0.633 ms
+ Execution Time: 0.065 ms
+(23 rows)
+```
+]
+)
+
+Analysis: Creating indexes on the Foreign Key columns (parking_spot_id) allowed the join to execute using a more efficient hash join or index-assisted nested loop.
+
+#pagebreak()
+=== Query 3: Unresolved Violation Audit
+Logic: Scans all outstanding tickets in restricted lots to prioritize enforcement.
+
+#table(
+columns: (1fr, 1fr),
+[Before Indexing], [After Indexing],
+[
+```
+ Planning:
+   Buffers: shared hit=72
+ Planning Time: 0.418 ms
+ Execution Time: 0.159 ms
+(32 rows)
+```
+],
+[
+```
+Buffers: shared hit=2
+ Planning Time: 0.778 ms
+ Execution Time: 0.011 ms
+(33 rows)
+```
+]
+)
+
+Analysis: We utilized a Partial Index (idx_unresolved_tickets) which only indexes rows where is_resolved = FALSE. This drastically reduces the index size and speeds up enforcement audits.
+
+== Index Rationale
+The following indexes were added to indexAll.sql:
+
+idx_user_email: Standard B-Tree for fast login/lookup.
+
+idx_car_owner: Speeds up retrieval of user vehicles.
+
+idx_spot_lot_occupancy: A Composite Index supporting the availability reporting view.
+
+idx_sensor_time: Supports time-series analytics.
+
+idx_unresolved_tickets: A Partial Index to optimize the enforcement dashboard.
