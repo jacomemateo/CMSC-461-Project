@@ -15,6 +15,11 @@ tasks:
     cmds:
       - docker exec -i parking-db psql -U postgres -d parking < db/queries/loadAll.sql
 
+  indexes:
+    desc: Create indexes for the database
+    cmds:
+      - docker exec -i parking-db psql -U postgres -d parking < db/queries/indexAll.sql
+
   connect:
     desc: Connect to the database via psql
     interactive: true
