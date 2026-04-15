@@ -417,7 +417,7 @@ columns: (1fr, 1fr),
 ]
 )
 
-Analysis: By adding a B-Tree index on event_time, we reduced the search space from a full table scan to a targeted range scan, resulting in a [Insert %] speed improvement.
+Analysis: By adding a B-Tree index on event_time, we reduced the search space from a full table scan to a targeted range scan, resulting in a  `62%` speed improvement.
 
 === Query 2: Overstayer Detection
 Logic: Joins reservation with sensor_events to find vehicles that remained in a spot after their reservation expired.
