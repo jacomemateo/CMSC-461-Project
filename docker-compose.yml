@@ -10,7 +10,7 @@ services:
       - "6767:5432"
     volumes:
       - db_data:/var/lib/postgresql
-      - ./db/migrations:/docker-entrypoint-initdb.d
+      - ./db/tables:/docker-entrypoint-initdb.d
     
   pgadmin:
     image: dpage/pgadmin4:latest
