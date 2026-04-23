@@ -146,13 +146,23 @@ FOR EACH ROW EXECUTE FUNCTION fn_update_occupancy();
 CREATE OR REPLACE PROCEDURE pr_generate_tickets() AS $$
 BEGIN
     INSERT INTO tickets (car_id, parking_spot_id, issue_time, violation_code, is_resolved)
-    SELECT c.id, s.id, NOW(), 'NO_PERMIT', FALSE
+    SELECT 
+        r.car_id, 
+        s.id, 
+        NOW(), 
+        'NO_PERMIT', 
+        FALSE
     FROM parking_spot s
-    JOIN sensor_events se ON s.id = se.parking_spot_id
-    JOIN car_info c ON se.id IS NOT NULL -- Simplified logic for sample
+    -- Link the spot to an active reservation to find the specific car
+    JOIN reservation r ON s.id = r.parking_spot_id 
+    JOIN car_info c ON r.car_id = c.id
     WHERE s.is_occupied = TRUE 
+    -- Check if the owner of that specific car lacks a valid permit
     AND NOT EXISTS (
-        SELECT 1 FROM permits p WHERE p.user_id = c.owner_id AND p.expiration_date > NOW()
+        SELECT 1 
+        FROM permits p 
+        WHERE p.user_id = c.owner_id 
+          AND p.expiration_date > NOW()
     );
 END;
 $$ LANGUAGE plpgsql;
