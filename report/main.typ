@@ -487,3 +487,63 @@ idx_spot_lot_occupancy: A Composite Index supporting the availability reporting 
 idx_sensor_time: Supports time-series analytics.
 
 idx_unresolved_tickets: A Partial Index to optimize the enforcement dashboard.
+
+= System Walkthrough
+
+This section provides a step-by-step demonstration of the core business workflows within the UMBC Parking Management System. It illustrates how data flows through the system—from initial user interaction to automated enforcement, while maintaining the integrity of the university's parking policies.
+
+== Permit Issuance Workflow
+
+The permit issuance process is encapsulated in the issue_permit function. This workflow demonstrates the system's ability to enforce business rules at the database level.
+
+- *Input*: A User UUID and a requested permit_type.
+
+- *Logic*: The function queries the user's role. If a STUDENT attempts to purchase a STAFF permit, the system raises an Eligibility Error.
+
+- *Outcome*: Upon successful validation, a record is inserted into the permits table with a calculated expiration date (Current Time + 1 Year).
+
+```sql
+-- Valid Issuance
+SELECT issue_permit('550e8400-e29b-41d4-a716-446655440000', 'STUDENT');
+
+-- Invalid Issuance (Triggers Exception)
+SELECT issue_permit('550e8400-e29b-41d4-a716-446655440000', 'STAFF');
+```
+
+== Reservation Workflow
+
+Reservations allow guests and students to secure a spot before arrival.
+
+- *Process*: A user selects a spot and a time range. The system checks for existing overlaps using a trigger.
+
+- *Outcome*: If the spot is available, a unique reservation ID is generated and linked to both the vehicle and the specific parking spot. If two users attempt to book the same spot simultaneously, the transaction-level FOR UPDATE lock ensures only one succeeds.
+
+== Sensor Integration and Occupancy Workflow
+
+The system updates its state based on physical sensor data. This is the primary driver for real-time lot availability.
+
+- *Trigger*: A vehicle pulls into a spot, and the ground sensor sends an ARRIVAL event.
+
+- *Mechanism*: The trg_sensor_occupancy trigger intercepts the insert into sensor_events.
+
+- *State Change*: The trigger executes an UPDATE on the parking_spot table, setting is_occupied = TRUE.
+
+- *Verification*: The view_lot_availability view immediately reflects one fewer available spot for that lot.
+
+== Automated Enforcement Workflow
+
+Enforcement is handled by the pr_generate_tickets stored procedure. This process automates the labor-intensive task of verifying every vehicle.
+
+- *Logic*: The procedure identifies all spots where is_occupied is TRUE. It then performs an anti-join (NOT EXISTS) against the permits and reservation tables for the current timestamp.
+
+- *Result*: For every unauthorized vehicle, a new row is generated in the tickets table, automatically applying the fine amount associated with the NO_PERMIT violation code.
+
+== Payment and Resolution Workflow
+
+The final stage of the lifecycle is the resolution of outstanding violations.
+
+- *Process*: A user makes a payment, which is recorded in the payments table.
+
+- *Logic*: An administrative update matches the payment to the outstanding ticket.
+
+- *Outcome*: The is_resolved flag in the tickets table is set to TRUE. This removes the ticket from the "Active Violations" audit, as seen in the optimized Partial Index (idx_unresolved_tickets).
