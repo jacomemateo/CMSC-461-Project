@@ -11,22 +11,27 @@ tasks:
       - docker compose up -d
 
   seed:
-    desc: Seeds the database with the sample data from db/queries/loadAll.sql
+    desc: Seeds the database with the sample data from db/seeds/testData.sql
     cmds:
       - docker exec -i parking-db psql -U postgres -d parking < db/seeds/testData.sql
 
   better_seed:
-    desc: Seeds the database using go program as input
+    desc: Seeds the database using the Go high-volume seeder
     cmds:
       - cd seeder && go run ./main.go
 
   indexes:
-    desc: Create indexes for the database
+    desc: Create indexes for the database performance
     cmds:
       - docker exec -i parking-db psql -U postgres -d parking < db/indices/indexAll.sql
 
+  concurrency_demo:
+    desc: Show the SQL used for the concurrency/transaction demo
+    cmds:
+      - cat db/queries/transactions.sql
+
   connect:
-    desc: Connect to the database via psql
+    desc: Connect to the database via psql (interactive)
     interactive: true
     cmds:
       - docker exec -it parking-db psql -U postgres -d parking
@@ -37,7 +42,7 @@ tasks:
       - docker compose down
 
   nuke:
-    desc: Stop containers and delete all volumes (data loss!)
+    desc: Stop containers and delete all volumes (total data loss!)
     cmds:
       - docker compose down -v
 
