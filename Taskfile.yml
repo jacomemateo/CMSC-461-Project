@@ -13,7 +13,7 @@ tasks:
   seed:
     desc: Seeds the database with the sample data from db/queries/loadAll.sql
     cmds:
-      - docker exec -i parking-db psql -U postgres -d parking < db/queries/loadAll.sql
+      - docker exec -i parking-db psql -U postgres -d parking < db/seeds/testData.sql
 
   better_seed:
     desc: Seeds the database using go program as input
